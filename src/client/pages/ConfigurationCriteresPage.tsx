@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../components/ui/select';
+import { RequireAuth } from '../components/RequireAuth';
 
 export const ConfigurationCriteresPage = () => {
   const { data: user } = useAuth();
@@ -76,6 +77,7 @@ export const ConfigurationCriteresPage = () => {
   };
 
   return (
+    <RequireAuth>
     <AmbientBackground>
       <motion.div
         initial={{ opacity: 0, y: 15 }}
@@ -230,5 +232,6 @@ export const ConfigurationCriteresPage = () => {
         </div>
       </motion.div>
     </AmbientBackground>
+    </RequireAuth>
   );
 };

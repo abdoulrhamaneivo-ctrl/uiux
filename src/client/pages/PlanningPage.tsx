@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from '../components/ui/select';
 import { useToast } from '../hooks/use-toast';
+import { RequireAuth } from '../components/RequireAuth';
 
 export const PlanningPage = () => {
   const { data: user } = useAuth();
@@ -80,6 +81,7 @@ export const PlanningPage = () => {
   };
 
   return (
+    <RequireAuth>
     <AmbientBackground>
       <div className="mx-auto max-w-7xl p-6 lg:p-10 space-y-8">
         <PageHeader
@@ -213,5 +215,6 @@ export const PlanningPage = () => {
         )}
       </div>
     </AmbientBackground>
+    </RequireAuth>
   );
 };

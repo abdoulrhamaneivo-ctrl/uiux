@@ -8,11 +8,20 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   Legend,
 } from 'recharts';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
+
+// Échelle sémantique universelle pour le CSAT (du rouge très mécontent au vert très satisfait)
+const CSAT_COLORS = [
+  '#EF4444', // 1 ⭐ : Rouge (Très mécontent)
+  '#F97316', // 2 ⭐ : Orange (Mécontent)
+  '#F59E0B', // 3 ⭐ : Jaune/Ambre (Neutre)
+  '#84CC16', // 4 ⭐ : Vert clair (Satisfait)
+  '#10B981', // 5 ⭐ : Vert émeraude (Très satisfait)
+];
 
 export const HistogrammeSatisfaction = ({ data }: { data: any[] }) => {
   const counts = [1, 2, 3, 4, 5].map((note) => ({
@@ -22,7 +31,7 @@ export const HistogrammeSatisfaction = ({ data }: { data: any[] }) => {
 
   return (
     <div className="h-72 rounded-2xl border border-border/70 bg-card p-5 shadow-premium">
-      <h3 className="mb-4 text-sm font-bold text-foreground">Répartition des notes</h3>
+      <h3 className="mb-4 text-sm font-bold text-foreground">Répartition des notes (CSAT)</h3>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={counts}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
@@ -36,15 +45,7 @@ export const HistogrammeSatisfaction = ({ data }: { data: any[] }) => {
             {counts.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
-                fill={
-                  index === 0
-                    ? 'hsl(var(--destructive))'
-                    : index === 1
-                    ? 'hsl(var(--warning))'
-                    : index === counts.length - 1
-                    ? 'hsl(var(--primary))'
-                    : 'hsl(var(--muted-foreground))'
-                }
+                fill={CSAT_COLORS[index]}
               />
             ))}
           </Bar>
@@ -68,7 +69,7 @@ export const RadarQualite = ({ data }: { data: any[] }) => {
             dataKey="A"
             stroke="hsl(var(--primary))"
             fill="hsl(var(--primary))"
-            fillOpacity={0.3}
+            fillOpacity={0.35}
           />
           <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid hsl(var(--border))' }} />
         </RadarChart>
@@ -78,7 +79,7 @@ export const RadarQualite = ({ data }: { data: any[] }) => {
 };
 
 // ============================================================================
-// Tendance mensuelle (LineChart — Module 3 : courbe d'évolution)
+// Tendance mensuelle (AreaChart avec gradient - Évolution)
 // ============================================================================
 
 export const TendanceMensuelle = ({ data }: { data: any[] }) => {
@@ -94,7 +95,13 @@ export const TendanceMensuelle = ({ data }: { data: any[] }) => {
     <div className="h-72 rounded-2xl border border-border/70 bg-card p-5 shadow-premium">
       <h3 className="mb-4 text-sm font-bold text-foreground">Tendance mensuelle — Score moyen / 5</h3>
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data}>
+        <AreaChart data={data}>
+          <defs>
+            <linearGradient id="tendanceGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.4}/>
+              <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+            </linearGradient>
+          </defs>
           <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
           <XAxis dataKey="mois" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
           <YAxis domain={[0, 5]} tick={{ fontSize: 11 }} className="fill-muted-foreground" />
@@ -103,23 +110,24 @@ export const TendanceMensuelle = ({ data }: { data: any[] }) => {
             formatter={(value: any) => [`${value}/5`, 'Score moyen']}
           />
           <Legend />
-          <Line
+          <Area
             type="monotone"
             dataKey="score_moyen"
             name="Score moyen"
             stroke="hsl(var(--primary))"
-            strokeWidth={2.5}
+            strokeWidth={3}
+            fill="url(#tendanceGrad)"
             dot={{ fill: 'hsl(var(--primary))', r: 4 }}
             activeDot={{ r: 6 }}
           />
-        </LineChart>
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   );
 };
 
 // ============================================================================
-// Comparaison agents (BarChart horizontal — Module 3 : vue par agent)
+// Comparaison agents (BarChart horizontal avec seuils de performance)
 // ============================================================================
 
 export const ComparaisonAgents = ({ data }: { data: any[] }) => {
@@ -133,7 +141,7 @@ export const ComparaisonAgents = ({ data }: { data: any[] }) => {
 
   return (
     <div className="h-64 rounded-2xl border border-border/70 bg-card p-5 shadow-premium">
-      <h3 className="mb-4 text-sm font-bold text-foreground">Scores par agent</h3>
+      <h3 className="mb-4 text-sm font-bold text-foreground">Scores de satisfaction par agent</h3>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} layout="vertical">
           <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-border" />
@@ -148,11 +156,11 @@ export const ComparaisonAgents = ({ data }: { data: any[] }) => {
               <Cell
                 key={`agent-${index}`}
                 fill={
-                  entry.score_moyen >= 4
-                    ? 'hsl(var(--primary))'
-                    : entry.score_moyen >= 3
-                    ? 'hsl(var(--warning))'
-                    : 'hsl(var(--destructive))'
+                  entry.score_moyen >= 4.0
+                    ? '#10B981' // Vert émeraude : Satisfaisant
+                    : entry.score_moyen >= 3.0
+                    ? '#F59E0B' // Orange / Ambre : Moyen
+                    : '#EF4444' // Rouge : Insuffisant
                 }
               />
             ))}

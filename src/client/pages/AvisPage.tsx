@@ -6,12 +6,14 @@ import { AmbientBackground } from '../components/AmbientBackground';
 import { PageHeader } from '../components/PageHeader';
 import { MotionCard } from '../components/MotionCard';
 import { EmptyState } from '../components/EmptyState';
+import { RequireAuth } from '../components/RequireAuth';
 
 export const AvisPage = () => {
   const { data: reponses, isLoading } = useQuery(getReponses);
   const reponsesList: any[] = reponses || [];
 
   return (
+    <RequireAuth>
     <AmbientBackground>
       <div className="mx-auto max-w-5xl p-6 lg:p-10">
         <PageHeader
@@ -85,5 +87,6 @@ export const AvisPage = () => {
         </div>
       </div>
     </AmbientBackground>
+    </RequireAuth>
   );
 };

@@ -31,8 +31,14 @@ export function App() {
     );
   }, [location]);
 
+  // Les routes CXSAT /admin/personnel et /admin/tarifs ne sont pas le dashboard
+  // admin Wasp — elles ont besoin de la NavBar normale.
+  const CXSAT_ADMIN_ROUTES = ['/admin/personnel', '/admin/tarifs'];
   const isAdminDashboard = useMemo(() => {
-    return location.pathname.startsWith(routes.AdminRoute.to);
+    return (
+      location.pathname.startsWith(routes.AdminRoute.to) &&
+      !CXSAT_ADMIN_ROUTES.some((r) => location.pathname.startsWith(r))
+    );
   }, [location]);
 
   const resizeObserverRef = useRef<ResizeObserver | null>(null);

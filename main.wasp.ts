@@ -1,4 +1,4 @@
-import { action, app, page, query, route } from "@wasp.sh/spec";
+import { action, app, page, query, route, job } from "@wasp.sh/spec";
 
 import { App } from "./src/client/App" with { type: "ref" };
 import { NotFoundPage } from "./src/client/components/NotFoundPage" with { type: "ref" };
@@ -38,6 +38,11 @@ import {
   updateStatutTache,
   marquerAlerteTraitee,
 } from "./src/server/actions" with { type: "ref" };
+
+// === IMPORTS JOBS CRON CXSAT ===
+import { detecterAlertesSilence } from "./src/server/jobs/alerteSilence" with { type: "ref" };
+import { relancerTachesEnRetard } from "./src/server/jobs/relanceTache" with { type: "ref" };
+import { envoyerRapportsMensuels } from "./src/server/jobs/rapportMensuel" with { type: "ref" };
 
 // === QUERIES ===
 import {
@@ -103,7 +108,7 @@ const updateAgentAction = action(updateAgent, { entities: ["User"] });
 const deleteAgentAction = action(deleteAgent, { entities: ["User"] });
 const createChefAgenceAction = action(createChefAgence, { entities: ["User"] });
 const promouvoirAgentAction = action(promouvoirAgent, { entities: ["User"] });
-const inviteAgentAction = action(inviteAgent, { entities: ["User"] });
+const inviteAgentAction = action(inviteAgent, { entities: ["User", "Agence"] });
 const toggleCritereAgenceAction = action(toggleCritereAgence, { entities: ["AgenceCritere", "User"] });
 const createCritereAction = action(createCritere, { entities: ["Critere", "AgenceCritere", "User"] });
 const updatePlanPricingAction = action(updatePlanPricing, { entities: ["PlanPricing", "User"] });
@@ -235,5 +240,21 @@ export default app({
     getAffectationsDuJourQuery,
     getTendanceMensuelleQuery,
     getStatsByAgentQuery,
+    // === JOBS CRON CXSAT ===
+    job(detecterAlertesSilence, {
+      executor: "PgBoss",
+      entities: ["Alerte", "Guichet", "AffectationGuichet", "Reponse", "User"],
+      schedule: { cron: "*/30 * * * *" }, // Toutes les 30 minutes
+    }),
+    job(relancerTachesEnRetard, {
+      executor: "PgBoss",
+      entities: ["TacheCorrective", "Alerte", "Guichet", "User"],
+      schedule: { cron: "0 8 * * *" }, // Tous les jours à 08h00
+    }),
+    job(envoyerRapportsMensuels, {
+      executor: "PgBoss",
+      entities: ["Agence", "Reponse", "Alerte", "TacheCorrective", "User"],
+      schedule: { cron: "0 7 1 * *" }, // Le 1er du mois à 07h00
+    }),
   ],
 });

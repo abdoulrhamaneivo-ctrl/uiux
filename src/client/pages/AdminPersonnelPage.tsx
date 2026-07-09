@@ -31,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../components/ui/select';
+import { RequireAuth } from '../components/RequireAuth';
 
 export const AdminPersonnelPage = () => {
   const { data: user } = useAuth();
@@ -68,6 +69,7 @@ export const AdminPersonnelPage = () => {
           prenom: formData.prenom,
           id_agence: selectedAgenceId,
           role: formData.role,
+          telephone: formData.telephone,
         });
       }
       setFormData({ nom: '', prenom: '', email: '', telephone: '', role: 'AGENT' });
@@ -108,8 +110,9 @@ export const AdminPersonnelPage = () => {
   const agentCount = agents?.length ?? 0;
 
   return (
+    <RequireAuth>
     <AmbientBackground>
-      <div className="min-h-screen p-8 dark:bg-slate-950">
+      <div className="min-h-screen p-8">
         <div className="mx-auto max-w-6xl">
           <PageHeader
             icon={Users}
@@ -142,7 +145,7 @@ export const AdminPersonnelPage = () => {
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="lg:col-span-1 rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/50 dark:border-slate-800 dark:bg-slate-900"
+              className="lg:col-span-1 rounded-3xl border border-border/70 bg-card p-6 shadow-premium ring-premium"
             >
               <h2 className="mb-6 flex items-center gap-2 text-lg font-bold">
                 <UserPlus className="text-primary" /> {editingId ? 'Modifier un agent' : 'Nouvel Agent'}
@@ -178,15 +181,41 @@ export const AdminPersonnelPage = () => {
                   required
                   className="h-11"
                 />
-                <Input
-                  name="email"
-                  type="email"
-                  placeholder="Email professionnel"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                  className="h-11"
-                />
+
+                <Select value={formData.role} onValueChange={(value) => setFormData(prev => ({ ...prev, role: value }))}>
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder="Rôle" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="AGENT">Agent de guichet</SelectItem>
+                    <SelectItem value="CHEF_AGENCE">Chef d’Agence</SelectItem>
+                    <SelectItem value="QUALITE">Auditeur Qualité</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Email : requis uniquement pour Chef d’Agence */}
+                <div className="space-y-1.5">
+                  <Input
+                    name="email"
+                    type="email"
+                    placeholder={formData.role === 'CHEF_AGENCE' ? 'Email professionnel *' : 'Email (optionnel)'}
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required={formData.role === 'CHEF_AGENCE'}
+                    className="h-11"
+                  />
+                  {formData.role === 'CHEF_AGENCE' ? (
+                    <p className="text-xs text-primary font-medium flex items-center gap-1">
+                      <Mail className="size-3" />
+                      Un email d’accueil avec identifiants lui sera envoyé automatiquement.
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      Les agents simples ne reçoivent pas d’invitation — ils sont créés directement.
+                    </p>
+                  )}
+                </div>
+
                 <Input
                   name="telephone"
                   placeholder="Téléphone (optionnel)"
@@ -195,25 +224,18 @@ export const AdminPersonnelPage = () => {
                   className="h-11"
                 />
 
-                <Select value={formData.role} onValueChange={(value) => setFormData(prev => ({ ...prev, role: value }))}>
-                  <SelectTrigger className="h-11">
-                    <SelectValue placeholder="Rôle" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="AGENT">Agent de guichet</SelectItem>
-                    <SelectItem value="CHEF_AGENCE">Chef d'Agence</SelectItem>
-                    <SelectItem value="QUALITE">Auditeur Qualité</SelectItem>
-                  </SelectContent>
-                </Select>
-
                 <div className="flex gap-3 pt-2">
                   {editingId && (
                     <Button type="button" variant="outline" onClick={handleCancelEdit} className="flex-1">
                       Annuler
                     </Button>
                   )}
-                  <Button type="submit" className="flex-1 rounded-xl bg-slate-900 font-bold hover:bg-slate-800">
-                    {editingId ? 'Enregistrer' : 'Envoyer invitation'}
+                  <Button type="submit" className="flex-1 rounded-xl font-bold">
+                    {editingId
+                      ? 'Enregistrer'
+                      : formData.role === 'CHEF_AGENCE'
+                      ? 'Inviter le Chef d’Agence'
+                      : 'Créer l’agent'}
                   </Button>
                 </div>
               </form>
@@ -229,7 +251,7 @@ export const AdminPersonnelPage = () => {
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.9 }}
-                    className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:shadow-lg dark:border-slate-800 dark:bg-slate-900"
+                    className="rounded-3xl border border-border/70 bg-card p-5 shadow-sm transition-all hover:shadow-premium hover:border-primary/20"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
@@ -283,7 +305,7 @@ export const AdminPersonnelPage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   className="md:col-span-2"
                 >
-                  <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-white/50 p-10 text-center dark:border-slate-800 dark:bg-slate-900/50">
+                  <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-border/50 bg-card/50 p-10 text-center">
                     <UsersRound className="mb-3 size-10 text-slate-400" />
                     <p className="font-semibold text-slate-900 dark:text-white">Aucun agent enregistré</p>
                     <p className="mt-1 text-sm text-slate-500">
@@ -297,5 +319,6 @@ export const AdminPersonnelPage = () => {
         </div>
       </div>
     </AmbientBackground>
+    </RequireAuth>
   );
 };

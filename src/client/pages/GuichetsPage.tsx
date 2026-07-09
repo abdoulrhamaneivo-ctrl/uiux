@@ -13,6 +13,7 @@ import { FormField } from '../components/FormField';
 import { KitGuichet } from '../components/KitGuichet';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { RequireAuth } from '../components/RequireAuth';
 import {
   Select,
   SelectContent,
@@ -72,6 +73,7 @@ export const GuichetsPage = () => {
 
   if (!userAgenceId) {
     return (
+      <RequireAuth>
       <AmbientBackground className="flex items-center justify-center p-8">
         <MotionCard interactive={false} className="max-w-md p-8 text-center">
           <span className="mx-auto mb-4 flex size-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive ring-1 ring-inset ring-destructive/15">
@@ -91,12 +93,14 @@ export const GuichetsPage = () => {
           </Button>
         </MotionCard>
       </AmbientBackground>
+      </RequireAuth>
     );
   }
 
   const guichetCount = guichets?.length ?? 0;
 
   return (
+    <RequireAuth>
     <AmbientBackground>
       <div className="mx-auto max-w-7xl p-6 lg:p-10">
         <PageHeader
@@ -249,5 +253,6 @@ export const GuichetsPage = () => {
         </div>
       </div>
     </AmbientBackground>
+    </RequireAuth>
   );
 };

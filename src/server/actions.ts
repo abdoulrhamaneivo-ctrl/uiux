@@ -320,8 +320,8 @@ export const updateAgent = async (
     data: {
       ...(args.nom ? { nom: args.nom } : {}),
       ...(args.prenom ? { prenom: args.prenom } : {}),
-      ...(args.email ? { email: args.email } : {}),
-      ...(args.telephone ? { telephone: args.telephone } : {}),
+      ...(args.email !== undefined ? { email: args.email.trim() ? args.email.trim() : null } : {}),
+      ...(args.telephone !== undefined ? { telephone: args.telephone.trim() ? args.telephone.trim() : null } : {}),
       ...(args.id_agence ? { id_agence: args.id_agence } : {}),
     },
   });
@@ -389,7 +389,10 @@ export const promouvoirAgent = async (args: { id_agent: string }, context: any) 
   });
 };
 
-export const inviteAgent = async (args: { email: string; nom: string; prenom: string; id_agence: number; role: string }, context: any) => {
+export const inviteAgent = async (
+  args: { email?: string; nom: string; prenom: string; id_agence: number; role: string; telephone?: string },
+  context: any
+) => {
   if (context.user?.role !== 'DIRECTION' && context.user?.role !== 'CHEF_AGENCE') {
     throw new HttpError(403, 'Accès refusé.');
   }
@@ -399,45 +402,184 @@ export const inviteAgent = async (args: { email: string; nom: string; prenom: st
     throw new HttpError(403, 'Accès refusé.');
   }
 
-  const chefExistant = args.role === 'CHEF_AGENCE' ? await context.entities.User.findFirst({
-    where: { id_agence: targetAgenceId, role: 'CHEF_AGENCE', actif: true }
-  }) : null;
+  const normalizedEmail = args.email?.trim() ? args.email.trim() : null;
 
-  if (chefExistant) {
-    throw new HttpError(400, "Cette agence possède déjà un Chef d'agence actif.");
+  // Un seul chef d'agence actif par agence
+  if (args.role === 'CHEF_AGENCE') {
+    if (!normalizedEmail) {
+      throw new HttpError(400, "L'adresse e-mail est obligatoire pour un Chef d'Agence.");
+    }
+    const chefExistant = await context.entities.User.findFirst({
+      where: { id_agence: targetAgenceId, role: 'CHEF_AGENCE', actif: true }
+    });
+    if (chefExistant) {
+      throw new HttpError(400, "Cette agence possède déjà un Chef d'agence actif.");
+    }
   }
 
   const tempPassword = crypto.randomBytes(16).toString('hex');
 
   const newUser = await context.entities.User.create({
     data: {
-      email: args.email,
+      email: normalizedEmail,
       nom: args.nom,
       prenom: args.prenom,
       role: args.role,
       id_agence: targetAgenceId,
+      telephone: args.telephone || null,
       password: tempPassword,
       actif: true,
     },
   });
 
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
 
-  await emailSender.send({
-    to: args.email,
-    subject: "Activation de votre compte CXSAT",
-    html: `
-      <h1>Bienvenue ${args.prenom} !</h1>
-      <p>Votre compte ${args.role === 'CHEF_AGENCE' ? "de Chef d'Agence" : "d'Agent"} a été créé.</p>
-      <p>Pour définir votre mot de passe, veuillez cliquer sur le lien ci-dessous :</p>
-      <a href="${frontendUrl}/request-password-reset">Définir mon mot de passe</a>
-      <p>Vous pourrez ensuite vous connecter avec votre adresse e-mail.</p>
-    `,
-    text: `Bienvenue ${args.prenom} ! Votre compte ${args.role === 'CHEF_AGENCE' ? "de Chef d'Agence" : "d'Agent"} a été créé. Pour définir votre mot de passe, visitez: ${frontendUrl}/request-password-reset`,
-  });
+  // ✉️ Email envoyé UNIQUEMENT au Chef d'agence
+  // Les agents simples (AGENT) n'ont pas besoin d'accès à l'application :
+  // ils sont référencés dans le planning et les avis, mais ne se connectent pas.
+  if (args.role === 'CHEF_AGENCE') {
+    const frontendUrl = process.env.WASP_WEB_CLIENT_URL || process.env.FRONTEND_URL || 'http://localhost:3000';
+
+    // Récupérer le nom de l'agence pour personnaliser l'email
+    const agence = await context.entities.Agence.findUnique({
+      where: { id: targetAgenceId },
+      select: { nom_agence: true, commune: true },
+    });
+
+    const nomAgence = agence ? `${agence.nom_agence} — ${agence.commune}` : 'votre agence';
+
+    await emailSender.send({
+      to: normalizedEmail!,
+      subject: `🎉 Bienvenue sur CXSAT — Accès Chef d'Agence`,
+      html: `<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"></head>
+<body style="font-family: system-ui, -apple-system, sans-serif; background: #f1f5f9; margin: 0; padding: 20px;">
+  <div style="max-width: 560px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 32px rgba(0,0,0,0.1);">
+
+    <!-- En-tête -->
+    <div style="background: linear-gradient(135deg, #0f2240 0%, #1a3a5c 60%, #c47a20 100%); padding: 36px 40px;">
+      <div style="font-size: 40px; margin-bottom: 12px;">👋</div>
+      <h1 style="color: white; margin: 0; font-size: 22px; font-weight: 900; line-height: 1.2;">
+        Bienvenue, ${args.prenom} !
+      </h1>
+      <p style="color: rgba(255,255,255,0.75); margin: 8px 0 0; font-size: 14px;">
+        Votre accès Chef d'Agence CXSAT est prêt
+      </p>
+    </div>
+
+    <!-- Corps -->
+    <div style="padding: 32px 40px;">
+      <p style="margin: 0 0 20px; color: #374151; font-size: 15px; line-height: 1.6;">
+        La direction vient de vous nommer <strong>Chef d'Agence</strong> pour
+        <strong>${nomAgence}</strong>. Votre rôle est de gérer les guichets, planifier
+        les agents et suivre les alertes de satisfaction.
+      </p>
+
+      <!-- Bloc identifiants -->
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0 0 12px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #6b7280;">
+          Vos identifiants de connexion
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: white; border: 1px solid #e2e8f0; border-radius: 8px;">
+            <span style="color: #6b7280; font-size: 13px;">📧 Adresse e-mail</span>
+            <strong style="color: #111827; font-size: 14px;">${args.email}</strong>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px;">
+            <span style="color: #92400e; font-size: 13px;">🔑 Agence</span>
+            <strong style="color: #92400e; font-size: 14px;">${nomAgence}</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Étapes -->
+      <div style="margin: 24px 0;">
+        <p style="margin: 0 0 14px; font-size: 13px; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.5px;">
+          Pour commencer
+        </p>
+        ${[
+          ['1', 'Définissez votre mot de passe', 'Cliquez sur le bouton ci-dessous pour sécuriser votre accès.'],
+          ['2', 'Connectez-vous', `Rendez-vous sur ${frontendUrl}/login avec votre email.`],
+          ['3', 'Gérez vos guichets', 'Planning, avis clients, alertes critiques — tout est centralisé.'],
+        ].map(([num, titre, desc]) => `
+        <div style="display: flex; gap: 14px; margin-bottom: 14px; align-items: flex-start;">
+          <div style="
+            flex-shrink: 0;
+            width: 28px; height: 28px;
+            background: linear-gradient(135deg, #1a3a5c, #c47a20);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 13px; color: white;
+          ">${num}</div>
+          <div>
+            <p style="margin: 0; font-weight: 700; color: #111827; font-size: 14px;">${titre}</p>
+            <p style="margin: 2px 0 0; color: #6b7280; font-size: 13px;">${desc}</p>
+          </div>
+        </div>`).join('')}
+      </div>
+
+      <!-- CTA principal -->
+      <div style="text-align: center; margin: 28px 0 8px;">
+        <a href="${frontendUrl}/request-password-reset"
+           style="
+             display: inline-block;
+             background: linear-gradient(135deg, #1a3a5c, #c47a20);
+             color: white;
+             text-decoration: none;
+             padding: 14px 32px;
+             border-radius: 10px;
+             font-weight: 800;
+             font-size: 15px;
+             letter-spacing: -0.2px;
+           ">
+          Définir mon mot de passe →
+        </a>
+      </div>
+
+      <p style="margin: 16px 0 0; color: #9ca3af; font-size: 12px; text-align: center;">
+        Ce lien vous permettra de définir votre mot de passe en toute sécurité.
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div style="background: #f8fafc; padding: 20px 40px; border-top: 1px solid #e2e8f0; text-align: center;">
+      <p style="margin: 0; color: #9ca3af; font-size: 12px;">
+        <strong>CXSAT</strong> — Plateforme de satisfaction client · Norme FD X50-167 ·
+        <a href="${frontendUrl}" style="color: #c47a20; text-decoration: none;">cxsat.ci</a>
+      </p>
+      <p style="margin: 6px 0 0; color: #d1d5db; font-size: 11px;">
+        Si vous n'attendiez pas cet email, ignorez-le ou contactez votre direction.
+      </p>
+    </div>
+  </div>
+</body>
+</html>`,
+      text: [
+        `Bienvenue ${args.prenom} ${args.nom} !`,
+        ``,
+        `Vous avez été nommé(e) Chef d'Agence sur CXSAT pour : ${nomAgence}.`,
+        ``,
+        `Email de connexion : ${args.email}`,
+        ``,
+        `Étapes :`,
+        `1. Définissez votre mot de passe : ${frontendUrl}/request-password-reset`,
+        `2. Connectez-vous sur : ${frontendUrl}/login`,
+        `3. Gérez vos guichets, planning et alertes depuis votre tableau de bord.`,
+        ``,
+        `CXSAT — Plateforme de satisfaction client`,
+      ].join('\n'),
+    });
+
+    console.log(`[INVITE] Email Chef d'Agence envoyé à ${args.email} (${nomAgence})`);
+  } else {
+    // AGENT simple → créé silencieusement, pas d'email
+    // Il sera assigné aux guichets via le planning sans jamais se connecter.
+    console.log(`[INVITE] Agent créé silencieusement : ${args.prenom} ${args.nom} (pas d'email)`);
+  }
 
   return newUser;
 };
+
 
 // ============================================================================
 // CRITÈRES D'ÉVALUATION

@@ -21,6 +21,7 @@ import { EmptyState } from '../components/EmptyState';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { useToast } from '../hooks/use-toast';
+import { RequireAuth } from '../components/RequireAuth';
 
 type Statut = 'A_FAIRE' | 'EN_COURS' | 'TERMINEE';
 
@@ -130,6 +131,7 @@ export const AlertesTachesPage = () => {
   };
 
   return (
+    <RequireAuth>
     <AmbientBackground>
       <div className="mx-auto max-w-7xl p-6 lg:p-10 space-y-8">
         <PageHeader
@@ -368,5 +370,6 @@ export const AlertesTachesPage = () => {
         )}
       </AnimatePresence>
     </AmbientBackground>
+    </RequireAuth>
   );
 };

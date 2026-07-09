@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react";
 import { motion } from "framer-motion";
-import { ShieldCheck, Sparkles } from "lucide-react";
+import { ShieldCheck, Sparkles, ArrowLeft } from "lucide-react";
 import { AmbientBackground } from "../client/components/AmbientBackground";
 import { CXSATLogo } from "../client/components/CXSATLogo";
 
@@ -67,6 +67,15 @@ export function AuthPageLayout({ eyebrow, title, subtitle, children, footer }: A
 
         {/* Panneau de formulaire */}
         <div className="p-8 sm:p-10">
+          <div className="mb-6 flex justify-start">
+            <a
+              href="/"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-neutral-500 hover:text-foreground transition-colors group"
+            >
+              <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-1" />
+              Retour à l'accueil
+            </a>
+          </div>
           <div className="mb-8">
             <h1 className="text-title-md font-black tracking-tight text-foreground">{title}</h1>
           </div>

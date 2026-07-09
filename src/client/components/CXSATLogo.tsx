@@ -1,12 +1,14 @@
 import React from 'react';
 
-export function CXSATLogo({ className = "size-8" }: { className?: string }) {
+export function CXSATLogo({ className = "size-8", width = 32, height = 32 }: { className?: string; width?: number; height?: number }) {
   return (
     <svg
       viewBox="0 0 100 100"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
+      width={width}
+      height={height}
     >
       <defs>
         <linearGradient id="cxsatLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">

@@ -39,7 +39,7 @@ export function SignupPage() {
 
     setLoading(true);
     try {
-      await signup({ email, password, prenom, nom });
+      await signup({ email, password, prenom, nom, username: email, isAdmin: false });
       setSuccess(true);
     } catch (err: any) {
       setError(err?.message || "Une erreur est survenue lors de la création du compte.");

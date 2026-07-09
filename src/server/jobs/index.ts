@@ -1,0 +1,6 @@
+// src/server/jobs/index.ts
+// Exports centralisés des jobs cron CXSAT
+
+export { detecterAlertesSilence } from './alerteSilence';
+export { relancerTachesEnRetard } from './relanceTache';
+export { envoyerRapportsMensuels } from './rapportMensuel';

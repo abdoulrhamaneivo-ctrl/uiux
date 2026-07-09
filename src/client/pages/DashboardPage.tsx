@@ -12,6 +12,7 @@ import { MotionCard } from '../components/MotionCard';
 import { StatCard } from '../components/StatCard';
 import { EmptyState } from '../components/EmptyState';
 import { Button } from '../components/ui/button';
+import { RequireAuth } from '../components/RequireAuth';
 import { DataTable } from '../components/ui/DataTable';
 
 export const DashboardPage = () => {
@@ -49,6 +50,7 @@ export const DashboardPage = () => {
   });
 
   return (
+    <RequireAuth>
     <AmbientBackground>
       <div className="mx-auto max-w-7xl p-6 lg:p-10 space-y-8">
         <PageHeader
@@ -212,5 +214,6 @@ export const DashboardPage = () => {
         />
       </div>
     </AmbientBackground>
+    </RequireAuth>
   );
 };
