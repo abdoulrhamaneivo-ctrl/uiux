@@ -161,6 +161,12 @@
   --shadow-premium:
     0px 1px 2px rgba(16, 24, 40, 0.06),
     0px 14px 34px -14px rgba(16, 24, 40, 0.2);
+  --shadow-premium-sm:
+    0px 1px 2px rgba(16, 24, 40, 0.05),
+    0px 4px 12px -4px rgba(16, 24, 40, 0.12);
+  --shadow-premium-md:
+    0px 1px 4px rgba(16, 24, 40, 0.06),
+    0px 10px 24px -8px rgba(16, 24, 40, 0.18);
   --shadow-premium-lg:
     0px 2px 6px rgba(16, 24, 40, 0.08),
     0px 28px 56px -18px rgba(16, 24, 40, 0.28);
@@ -233,6 +239,22 @@
   box-shadow:
     0 0 0 1px hsl(var(--border) / 0.7),
     var(--shadow-premium);
+}
+
+@utility shadow-premium {
+  box-shadow: var(--shadow-premium);
+}
+
+@utility shadow-premium-sm {
+  box-shadow: var(--shadow-premium-sm);
+}
+
+@utility shadow-premium-md {
+  box-shadow: var(--shadow-premium-md);
+}
+
+@utility shadow-premium-lg {
+  box-shadow: var(--shadow-premium-lg);
 }
 
 @utility chat-height {

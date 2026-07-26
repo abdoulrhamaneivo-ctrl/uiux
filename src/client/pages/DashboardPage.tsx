@@ -46,7 +46,11 @@ export const DashboardPage = () => {
   const { data: statsByGuichet, isLoading: loadingGuichets } = useQuery(getStatsByGuichet);
   const { data: actionsPrioritaires, isLoading: loadingActions } = useQuery(getActionsPrioritaires);
   const { data: kpisPeriode, isLoading: loadingKpis } = useQuery(getKPIsPeriode);
-  const { data: objectifs, isLoading: loadingObjectifs } = useQuery(getObjectifs);
+  const { data: objectifs, isLoading: loadingObjectifs } = useQuery(
+    getObjectifs,
+    { id_agence: user?.id_agence },
+    { enabled: !!user }
+  );
 
   const reponsesList: any[] = reponses || [];
   // "Derniers avis" / badges de comptage : un avis = une soumission, pas une

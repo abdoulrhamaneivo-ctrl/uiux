@@ -237,7 +237,8 @@ export const AlertesTachesPage = () => {
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+            <div className="overflow-x-auto momentum-scroll -mx-2 px-2">
+              <div className="grid grid-cols-3 gap-4 min-w-[640px] sm:min-w-0 sm:gap-6">
               {COLONNES.map((col) => {
                 const tachesColonne = tachesList.filter((t) => t.statut_tache === col.statut);
                 return (
@@ -329,6 +330,7 @@ export const AlertesTachesPage = () => {
                   </div>
                 );
               })}
+            </div>
             </div>
           )}
         </section>
