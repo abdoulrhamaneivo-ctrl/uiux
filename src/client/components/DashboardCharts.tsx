@@ -30,50 +30,54 @@ export const HistogrammeSatisfaction = ({ data }: { data: any[] }) => {
   }));
 
   return (
-    <div className="h-72 rounded-2xl border border-border/70 bg-card p-5 shadow-premium">
-      <h3 className="mb-4 text-sm font-bold text-foreground">Répartition des notes (CSAT)</h3>
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={counts}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
-          <XAxis dataKey="name" className="fill-muted-foreground" tick={{ fontSize: 12 }} />
-          <YAxis className="fill-muted-foreground" tick={{ fontSize: 12 }} />
-          <Tooltip
-            contentStyle={{ borderRadius: 12, border: '1px solid hsl(var(--border))' }}
-            labelStyle={{ fontWeight: 700 }}
-          />
-          <Bar dataKey="count" radius={[6, 6, 0, 0]}>
-            {counts.map((entry, index) => (
-              <Cell
-                key={`cell-${index}`}
-                fill={CSAT_COLORS[index]}
-              />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+    <div className="flex flex-col h-72 rounded-2xl border border-border/70 bg-card p-5 shadow-premium min-w-0">
+      <h3 className="mb-2 text-sm font-bold text-foreground">Répartition des notes (CSAT)</h3>
+      <div className="flex-1 w-full min-h-0 min-w-0">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={180}>
+          <BarChart data={counts}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
+            <XAxis dataKey="name" className="fill-muted-foreground" tick={{ fontSize: 12 }} />
+            <YAxis className="fill-muted-foreground" tick={{ fontSize: 12 }} />
+            <Tooltip
+              contentStyle={{ borderRadius: 12, border: '1px solid hsl(var(--border))' }}
+              labelStyle={{ fontWeight: 700 }}
+            />
+            <Bar dataKey="count" radius={[6, 6, 0, 0]}>
+              {counts.map((entry, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={CSAT_COLORS[index]}
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 };
 
 export const RadarQualite = ({ data }: { data: any[] }) => {
   return (
-    <div className="h-72 rounded-2xl border border-border/70 bg-card p-5 shadow-premium">
-      <h3 className="mb-4 text-sm font-bold text-foreground">Index de Conformité (5 Axes)</h3>
-      <ResponsiveContainer width="100%" height="100%">
-        <RadarChart cx="50%" cy="50%" data={data}>
-          <PolarGrid className="stroke-border" />
-          <PolarAngleAxis dataKey="subject" className="fill-foreground text-xs font-semibold" />
-          <PolarRadiusAxis angle={30} domain={[0, 100]} className="text-[10px]" />
-          <Radar
-            name="Conformité"
-            dataKey="A"
-            stroke="#F97316"
-            fill="#F97316"
-            fillOpacity={0.35}
-          />
-          <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid hsl(var(--border))' }} />
-        </RadarChart>
-      </ResponsiveContainer>
+    <div className="flex flex-col h-72 rounded-2xl border border-border/70 bg-card p-5 shadow-premium min-w-0">
+      <h3 className="mb-2 text-sm font-bold text-foreground">Index de Conformité (5 Axes)</h3>
+      <div className="flex-1 w-full min-h-0 min-w-0">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={180}>
+          <RadarChart cx="50%" cy="50%" data={data}>
+            <PolarGrid className="stroke-border" />
+            <PolarAngleAxis dataKey="subject" className="fill-foreground text-xs font-semibold" />
+            <PolarRadiusAxis angle={30} domain={[0, 100]} className="text-[10px]" />
+            <Radar
+              name="Conformité"
+              dataKey="A"
+              stroke="#F97316"
+              fill="#F97316"
+              fillOpacity={0.35}
+            />
+            <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid hsl(var(--border))' }} />
+          </RadarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 };
@@ -92,36 +96,38 @@ export const TendanceMensuelle = ({ data }: { data: any[] }) => {
   }
 
   return (
-    <div className="h-72 rounded-2xl border border-border/70 bg-card p-5 shadow-premium">
-      <h3 className="mb-4 text-sm font-bold text-foreground">Tendance mensuelle — Score moyen / 5</h3>
-      <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data}>
-          <defs>
-            <linearGradient id="tendanceGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#F97316" stopOpacity={0.4}/>
-              <stop offset="95%" stopColor="#F97316" stopOpacity={0}/>
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
-          <XAxis dataKey="mois" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
-          <YAxis domain={[0, 5]} tick={{ fontSize: 11 }} className="fill-muted-foreground" />
-          <Tooltip
-            contentStyle={{ borderRadius: 12, border: '1px solid hsl(var(--border))' }}
-            formatter={(value: any) => [`${value}/5`, 'Score moyen']}
-          />
-          <Legend />
-          <Area
-            type="monotone"
-            dataKey="score_moyen"
-            name="Score moyen"
-            stroke="#F97316"
-            strokeWidth={3}
-            fill="url(#tendanceGrad)"
-            dot={{ fill: '#F97316', r: 4 }}
-            activeDot={{ r: 6 }}
-          />
-        </AreaChart>
-      </ResponsiveContainer>
+    <div className="flex flex-col h-72 rounded-2xl border border-border/70 bg-card p-5 shadow-premium min-w-0">
+      <h3 className="mb-2 text-sm font-bold text-foreground">Tendance mensuelle — Score moyen / 5</h3>
+      <div className="flex-1 w-full min-h-0 min-w-0">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={180}>
+          <AreaChart data={data}>
+            <defs>
+              <linearGradient id="tendanceGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#F97316" stopOpacity={0.4}/>
+                <stop offset="95%" stopColor="#F97316" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
+            <XAxis dataKey="mois" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+            <YAxis domain={[0, 5]} tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+            <Tooltip
+              contentStyle={{ borderRadius: 12, border: '1px solid hsl(var(--border))' }}
+              formatter={(value: any) => [`${value}/5`, 'Score moyen']}
+            />
+            <Legend />
+            <Area
+              type="monotone"
+              dataKey="score_moyen"
+              name="Score moyen"
+              stroke="#F97316"
+              strokeWidth={3}
+              fill="url(#tendanceGrad)"
+              dot={{ fill: '#F97316', r: 4 }}
+              activeDot={{ r: 6 }}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 };
@@ -144,37 +150,39 @@ export const ClassementGuichets = ({ data }: { data: any[] }) => {
   const hauteur = Math.max(288, data.length * 40);
 
   return (
-    <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-premium" style={{ height: hauteur }}>
+    <div className="flex flex-col rounded-2xl border border-border/70 bg-card p-5 shadow-premium min-w-0" style={{ height: hauteur }}>
       <h3 className="mb-1 text-sm font-bold text-foreground">Classement des guichets</h3>
-      <p className="mb-3 text-xs text-muted-foreground">Du plus faible au plus performant</p>
-      <ResponsiveContainer width="100%" height="88%">
-        <BarChart data={data} layout="vertical">
-          <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-border" />
-          <XAxis type="number" domain={[0, 5]} tick={{ fontSize: 11 }} className="fill-muted-foreground" />
-          <YAxis type="category" dataKey="nom" width={120} tick={{ fontSize: 11 }} className="fill-muted-foreground" />
-          <Tooltip
-            contentStyle={{ borderRadius: 12, border: '1px solid hsl(var(--border))' }}
-            formatter={(value: any, _name: any, item: any) => [
-              `${value}/5 (${item?.payload?.nb_avis ?? 0} avis)`,
-              item?.payload?.agence || 'Score moyen',
-            ]}
-          />
-          <Bar dataKey="score_moyen" name="Score moyen" radius={[0, 6, 6, 0]}>
-            {data.map((entry, index) => (
-              <Cell
-                key={`guichet-${index}`}
-                fill={
-                  entry.score_moyen >= 4.0
-                    ? '#10B981'
-                    : entry.score_moyen >= 3.0
-                    ? '#F59E0B'
-                    : '#EF4444'
-                }
-              />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+      <p className="mb-2 text-xs text-muted-foreground">Du plus faible au plus performant</p>
+      <div className="flex-1 w-full min-h-0 min-w-0">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={180}>
+          <BarChart data={data} layout="vertical">
+            <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-border" />
+            <XAxis type="number" domain={[0, 5]} tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+            <YAxis type="category" dataKey="nom" width={120} tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+            <Tooltip
+              contentStyle={{ borderRadius: 12, border: '1px solid hsl(var(--border))' }}
+              formatter={(value: any, _name: any, item: any) => [
+                `${value}/5 (${item?.payload?.nb_avis ?? 0} avis)`,
+                item?.payload?.agence || 'Score moyen',
+              ]}
+            />
+            <Bar dataKey="score_moyen" name="Score moyen" radius={[0, 6, 6, 0]}>
+              {data.map((entry, index) => (
+                <Cell
+                  key={`guichet-${index}`}
+                  fill={
+                    entry.score_moyen >= 4.0
+                      ? '#10B981'
+                      : entry.score_moyen >= 3.0
+                      ? '#F59E0B'
+                      : '#EF4444'
+                  }
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 };
@@ -193,33 +201,35 @@ export const ComparaisonAgents = ({ data }: { data: any[] }) => {
   }
 
   return (
-    <div className="h-64 rounded-2xl border border-border/70 bg-card p-5 shadow-premium">
-      <h3 className="mb-4 text-sm font-bold text-foreground">Scores de satisfaction par agent</h3>
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} layout="vertical">
-          <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-border" />
-          <XAxis type="number" domain={[0, 5]} tick={{ fontSize: 11 }} className="fill-muted-foreground" />
-          <YAxis type="category" dataKey="nom" width={110} tick={{ fontSize: 11 }} className="fill-muted-foreground" />
-          <Tooltip
-            contentStyle={{ borderRadius: 12, border: '1px solid hsl(var(--border))' }}
-            formatter={(value: any) => [`${value}/5`, 'Score moyen']}
-          />
-          <Bar dataKey="score_moyen" name="Score moyen" radius={[0, 6, 6, 0]}>
-            {data.map((entry, index) => (
-              <Cell
-                key={`agent-${index}`}
-                fill={
-                  entry.score_moyen >= 4.0
-                    ? '#10B981' // Vert émeraude : Satisfaisant
-                    : entry.score_moyen >= 3.0
-                    ? '#F59E0B' // Orange / Ambre : Moyen
-                    : '#EF4444' // Rouge : Insuffisant
-                }
-              />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+    <div className="flex flex-col h-64 rounded-2xl border border-border/70 bg-card p-5 shadow-premium min-w-0">
+      <h3 className="mb-2 text-sm font-bold text-foreground">Scores de satisfaction par agent</h3>
+      <div className="flex-1 w-full min-h-0 min-w-0">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={150}>
+          <BarChart data={data} layout="vertical">
+            <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-border" />
+            <XAxis type="number" domain={[0, 5]} tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+            <YAxis type="category" dataKey="nom" width={110} tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+            <Tooltip
+              contentStyle={{ borderRadius: 12, border: '1px solid hsl(var(--border))' }}
+              formatter={(value: any) => [`${value}/5`, 'Score moyen']}
+            />
+            <Bar dataKey="score_moyen" name="Score moyen" radius={[0, 6, 6, 0]}>
+              {data.map((entry, index) => (
+                <Cell
+                  key={`agent-${index}`}
+                  fill={
+                    entry.score_moyen >= 4.0
+                      ? '#10B981' // Vert émeraude : Satisfaisant
+                      : entry.score_moyen >= 3.0
+                      ? '#F59E0B' // Orange / Ambre : Moyen
+                      : '#EF4444' // Rouge : Insuffisant
+                  }
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 };

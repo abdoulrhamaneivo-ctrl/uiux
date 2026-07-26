@@ -26,7 +26,9 @@ export const KitGuichet = ({ guichet }: { guichet: any }) => {
 
   const formatConfigs = {
     A5: {
-      containerStyle: { width: '420px', minHeight: '594px', padding: '32px' },
+      widthPx: 420,
+      heightPx: 594,
+      containerStyle: { width: '420px', minHeight: '594px', padding: '32px', boxSizing: 'border-box' as const },
       qrWrapperStyle: { height: '280px', width: '280px' },
       qrSizeClass: "h-64 w-64",
       titleClass: "text-2xl mb-1",
@@ -39,7 +41,9 @@ export const KitGuichet = ({ guichet }: { guichet: any }) => {
       label: "Format A5 (Affiche)",
     },
     A4: {
-      containerStyle: { width: '595px', minHeight: '842px', padding: '48px' },
+      widthPx: 595,
+      heightPx: 842,
+      containerStyle: { width: '595px', minHeight: '842px', padding: '48px', boxSizing: 'border-box' as const },
       qrWrapperStyle: { height: '410px', width: '410px' },
       qrSizeClass: "h-96 w-96",
       titleClass: "text-3xl font-black mb-2",
@@ -52,7 +56,9 @@ export const KitGuichet = ({ guichet }: { guichet: any }) => {
       label: "Format A4 (Poster)",
     },
     BADGE: {
-      containerStyle: { width: '240px', minHeight: '320px', padding: '16px' },
+      widthPx: 240,
+      heightPx: 320,
+      containerStyle: { width: '240px', minHeight: '320px', padding: '16px', boxSizing: 'border-box' as const },
       qrWrapperStyle: { height: '180px', width: '180px' },
       qrSizeClass: "h-40 w-40",
       titleClass: "text-lg mb-0.5",
@@ -113,13 +119,23 @@ export const KitGuichet = ({ guichet }: { guichet: any }) => {
     await new Promise((resolve) => requestAnimationFrame(resolve));
 
     try {
+      // Ensure element scroll parent is reset during rasterization to prevent offset shifts on mobile
+      const scrollParent = kitRef.current.parentElement;
+      if (scrollParent) {
+        scrollParent.scrollLeft = 0;
+      }
+
       const dataUrl = await toPng(kitRef.current, {
         pixelRatio: 2,
         cacheBust: true,
-        skipFonts: true,
+        width: currentConfig.widthPx,
+        height: kitRef.current.offsetHeight || currentConfig.heightPx,
         style: {
-          transform: 'scale(1)',
-          transformOrigin: 'top left',
+          transform: 'none',
+          margin: '0',
+          boxSizing: 'border-box',
+          overflow: 'hidden',
+          backgroundColor: '#ffffff',
         },
       });
       const link = document.createElement('a');
@@ -159,12 +175,12 @@ export const KitGuichet = ({ guichet }: { guichet: any }) => {
         ))}
       </div>
 
-      {/* Wrapper responsive avec scroll horizontal pour éviter de casser la grille sur mobile */}
-      <div className="w-full overflow-x-auto momentum-scroll scroll-fade-x p-4 bg-neutral-50/50 dark:bg-slate-900/10 rounded-2xl border border-dashed border-border/80">
+      {/* Wrapper responsive avec défilement et centrage propre sur tous les écrans */}
+      <div className="w-full overflow-x-auto momentum-scroll p-4 bg-neutral-50/50 dark:bg-slate-900/10 rounded-2xl border border-dashed border-border/80 flex justify-center items-center">
         <div
           ref={kitRef}
           style={{ ...currentConfig.containerStyle, ...primaryColorStyle }}
-          className="kit-affiche mx-auto rounded-2xl border-4 bg-white text-center shadow-xl print:rounded-none print:border-black print:shadow-none"
+          className="kit-affiche shrink-0 rounded-2xl border-4 bg-white text-center shadow-xl print:rounded-none print:border-black print:shadow-none overflow-hidden"
         >
           <div className="mb-4 flex items-center justify-center gap-2">
             <BrandLogo className={currentConfig.logoClass} height={currentConfig.logoSize} />
@@ -173,16 +189,16 @@ export const KitGuichet = ({ guichet }: { guichet: any }) => {
             </span>
           </div>
 
-          <h2 className={`${currentConfig.titleClass} font-extrabold leading-tight text-neutral-900`}>
+          <h2 className={`${currentConfig.titleClass} font-extrabold leading-tight text-neutral-900 break-words`}>
             {brandConfig?.form_title || "Votre avis compte !"}
           </h2>
-          <p className={`${currentConfig.subtitleClass} font-semibold text-neutral-600`}>
+          <p className={`${currentConfig.subtitleClass} font-semibold text-neutral-600 break-words`}>
             {guichet.nom_guichet}
           </p>
 
           <div 
             style={currentConfig.qrWrapperStyle}
-            className="mx-auto mb-5 flex items-center justify-center rounded-xl border-4 border-neutral-900 bg-white p-3"
+            className="mx-auto mb-5 flex items-center justify-center rounded-xl border-4 border-neutral-900 bg-white p-3 shrink-0"
           >
             {loadingQr ? (
               <div className="flex flex-col items-center justify-center gap-2 text-neutral-500">
@@ -193,7 +209,7 @@ export const KitGuichet = ({ guichet }: { guichet: any }) => {
               <img
                 src={qrDataUrl}
                 alt="QR Code d'évaluation"
-                className="mx-auto block"
+                className="mx-auto block object-contain"
                 style={{
                   width: selectedFormat === 'A4' ? '384px' : selectedFormat === 'A5' ? '256px' : '160px',
                   height: selectedFormat === 'A4' ? '384px' : selectedFormat === 'A5' ? '256px' : '160px',
@@ -202,18 +218,18 @@ export const KitGuichet = ({ guichet }: { guichet: any }) => {
             )}
           </div>
 
-          <p className={`${currentConfig.scanTextClass} font-extrabold uppercase tracking-wide text-neutral-900`}>
+          <p className={`${currentConfig.scanTextClass} font-extrabold uppercase tracking-wide text-neutral-900 break-words`}>
             {brandConfig?.qr_slogan || "Scannez ce QR Code"}
           </p>
-          <p className={`${currentConfig.scanDescClass} font-medium text-neutral-600`}>
+          <p className={`${currentConfig.scanDescClass} font-medium text-neutral-600 break-words px-2`}>
             Notez-nous en 10 secondes, après votre passage à ce guichet
           </p>
 
-          <div className={`rounded-xl bg-neutral-100 px-4 ${currentConfig.ussdPaddingClass} print:border print:border-neutral-400 print:bg-white`}>
-            <p className="text-xs font-semibold text-neutral-700">
+          <div className={`rounded-xl bg-neutral-100 px-4 ${currentConfig.ussdPaddingClass} print:border print:border-neutral-400 print:bg-white overflow-hidden`}>
+            <p className="text-xs font-semibold text-neutral-700 break-words">
               {brandConfig?.ussd_help_text || "Pas de connexion internet ?"}
             </p>
-            <p className="text-sm font-bold tracking-wide text-neutral-900 mt-1">
+            <p className="text-sm font-bold tracking-wide text-neutral-900 mt-1 break-all">
               Composez <span className="font-extrabold text-primary">{ussdCode}</span>
             </p>
           </div>

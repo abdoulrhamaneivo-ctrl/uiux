@@ -1,6 +1,7 @@
 import { type App } from "@wasp.sh/spec";
 
 export const head: App["head"] = [
+  "<meta http-equiv='Content-Security-Policy' content=\"script-src 'self' 'unsafe-inline' 'unsafe-eval' https: http: data: blob: *; worker-src 'self' blob:; font-src 'self' https: http: data: *; img-src 'self' https: http: data: blob: *;\">",
   "<link rel='icon' href='/favicon.ico' />",
 
   "<meta name='description' content='CXSAT centralise la collecte multicanal (QR, USSD, vocal), le scoring qualité et les alertes temps réel pour piloter la satisfaction client de votre réseau d’agences à Abidjan.' />",
@@ -24,3 +25,4 @@ export const head: App["head"] = [
   "<script async data-domain='<your-site-id>' src='https://plausible.io/js/script.js'></script>", // for production
   "<script async data-domain='<your-site-id>' src='https://plausible.io/js/script.local.js'></script>", // for development
 ];
+

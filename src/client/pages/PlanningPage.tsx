@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from 'wasp/client/auth';
-import { useQuery, assignAgent, getGuichets, getAgents, getAffectationsDuJour } from 'wasp/client/operations';
+import { useQuery, assignAgent, getGuichets, getAgents, getAffectationsDuJour, getAgences } from 'wasp/client/operations';
 import { motion } from 'framer-motion';
 import { CalendarClock, Store, UserCheck2, Clock, AlertTriangle } from 'lucide-react';
 import { AmbientBackground } from '../components/AmbientBackground';
@@ -26,15 +26,36 @@ export const PlanningPage = () => {
   const [heureFin, setHeureFin] = useState('13:00');
   const [assigningId, setAssigningId] = useState<number | null>(null);
 
-  const userAgenceId = user?.id_agence;
+  const isDirection = user?.role === 'DIRECTION';
+  const [selectedAgenceId, setSelectedAgenceId] = useState<number | null>(user?.id_agence ?? null);
+  const { data: agences } = useQuery(getAgences, undefined, { enabled: isDirection });
+
+  useEffect(() => {
+    if (selectedAgenceId !== null) return;
+    if (user?.id_agence) {
+      setSelectedAgenceId(user.id_agence);
+    } else if (agences && agences.length > 0) {
+      setSelectedAgenceId(agences[0].id);
+    }
+  }, [user?.id_agence, agences, selectedAgenceId]);
+
+  const effectiveAgenceId = selectedAgenceId ?? 0;
   const today = new Date().toISOString().split('T')[0];
 
-  const { data: guichets, isLoading: loadingGuichets } = useQuery(getGuichets, { id_agence: userAgenceId || 0 });
-  const { data: agents } = useQuery(getAgents, { id_agence: userAgenceId || 0 });
+  const { data: guichets, isLoading: loadingGuichets } = useQuery(
+    getGuichets,
+    { id_agence: effectiveAgenceId },
+    { enabled: !!effectiveAgenceId }
+  );
+  const { data: agents } = useQuery(
+    getAgents,
+    { id_agence: effectiveAgenceId },
+    { enabled: !!effectiveAgenceId }
+  );
   const { data: affectationsDuJour } = useQuery(
     getAffectationsDuJour,
-    { id_agence: userAgenceId || 0, date: today },
-    { enabled: !!userAgenceId }
+    { id_agence: effectiveAgenceId, date: today },
+    { enabled: !!effectiveAgenceId }
   );
 
   const todayLabel = new Date().toLocaleDateString('fr-FR', {
@@ -89,6 +110,25 @@ export const PlanningPage = () => {
           eyebrow="Affectations du jour"
           title="Planning des guichets"
           description={`Aujourd'hui, ${todayLabel} — affectez chaque agent à son poste et à son créneau horaire.`}
+          actions={
+            isDirection && agences && agences.length > 0 ? (
+              <Select
+                value={selectedAgenceId !== null ? String(selectedAgenceId) : undefined}
+                onValueChange={(v) => setSelectedAgenceId(Number(v))}
+              >
+                <SelectTrigger className="h-10 min-w-56">
+                  <SelectValue placeholder="Choisir l'agence" />
+                </SelectTrigger>
+                <SelectContent>
+                  {agences.map((agence: any) => (
+                    <SelectItem key={agence.id} value={String(agence.id)}>
+                      {agence.nom_agence} ({agence.commune})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : undefined
+          }
         />
 
         {/* Créneau horaire par défaut */}

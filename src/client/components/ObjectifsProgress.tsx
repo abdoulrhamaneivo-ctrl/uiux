@@ -1,7 +1,8 @@
 import React from 'react';
-import { Target } from 'lucide-react';
+import { Target, ArrowRight } from 'lucide-react';
 import { cn } from '../utils';
 import { EmptyState } from './EmptyState';
+import { Button } from './ui/button';
 
 type Objectif = {
   id: number;
@@ -19,7 +20,14 @@ export const ObjectifsProgress = ({ data }: { data: Objectif[] }) => {
       <EmptyState
         icon={Target}
         title="Aucun objectif défini"
-        description="Fixez des objectifs de satisfaction par critère pour savoir si vous êtes sur la bonne trajectoire."
+        description="Fixez des objectifs de satisfaction par critère pour suivre la trajectoire de votre agence."
+        action={
+          <Button asChild variant="outline" size="sm" className="gap-1.5 font-bold">
+            <a href="/criteres">
+              Définir des objectifs <ArrowRight className="size-3.5" />
+            </a>
+          </Button>
+        }
       />
     );
   }

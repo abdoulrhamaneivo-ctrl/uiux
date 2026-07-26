@@ -378,7 +378,7 @@ export const AdminPersonnelPage = () => {
 
                     <div className="mt-6 flex flex-col gap-2 text-sm text-slate-600 dark:text-slate-400">
                       <div className="flex items-center gap-2">
-                        <Mail size={14} /> {agent.email}
+                        <Mail size={14} /> {agent.email || 'Non renseigné'}
                       </div>
                       <div className="flex items-center gap-2">
                         <Phone size={14} /> {agent.telephone || 'Non renseigné'}

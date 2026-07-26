@@ -96,7 +96,20 @@ export const GuichetsPage = () => {
   const [newServiceName, setNewServiceName] = useState('');
   const [creatingService, setCreatingService] = useState(false);
 
-  const userAgenceId = user?.id_agence;
+  const isDirection = user?.role === 'DIRECTION';
+  const [selectedAgenceId, setSelectedAgenceId] = useState<number | null>(user?.id_agence ?? null);
+  const { data: agences } = useQuery(getAgences, undefined, { enabled: isDirection });
+
+  useEffect(() => {
+    if (selectedAgenceId !== null) return;
+    if (user?.id_agence) {
+      setSelectedAgenceId(user.id_agence);
+    } else if (agences && agences.length > 0) {
+      setSelectedAgenceId(agences[0].id);
+    }
+  }, [user?.id_agence, agences, selectedAgenceId]);
+
+  const effectiveAgenceId = selectedAgenceId ?? 0;
 
   const {
     data: guichets,
@@ -104,8 +117,8 @@ export const GuichetsPage = () => {
     error: queryError,
   } = useQuery(
     getGuichets,
-    { id_agence: userAgenceId || 0 },
-    { enabled: !!userAgenceId },
+    { id_agence: effectiveAgenceId },
+    { enabled: !!effectiveAgenceId },
   );
 
   const { data: allServices } = useQuery(getServices);
@@ -118,7 +131,7 @@ export const GuichetsPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userAgenceId) return;
+    if (!effectiveAgenceId) return;
     setLoading(true);
     setError(null);
 
@@ -126,7 +139,7 @@ export const GuichetsPage = () => {
       await createGuichet({ 
         nomGuichet, 
         typeGuichet, 
-        id_agence: userAgenceId,
+        id_agence: effectiveAgenceId,
         serviceIds: selectedServiceIds
       });
       setNomGuichet('');
@@ -170,7 +183,7 @@ export const GuichetsPage = () => {
     }
   };
 
-  if (!userAgenceId) {
+  if (!effectiveAgenceId && !isDirection) {
     return (
       <RequireAuth>
         <AmbientBackground className="flex items-center justify-center p-8">
@@ -208,13 +221,32 @@ export const GuichetsPage = () => {
             title="Gestion des Guichets Physiques"
             description="Ajoutez vos caisses et téléchargez vos kits d'évaluation (QR Codes & USSD)."
             actions={
-              guichetCount > 0 && (
-                <motion.div whileTap={{ scale: 0.97 }}>
-                  <Button onClick={handlePrint}>
-                    <Printer className="size-4" /> Imprimer le Kit complet
-                  </Button>
-                </motion.div>
-              )
+              <div className="flex items-center gap-3">
+                {isDirection && agences && agences.length > 0 && (
+                  <Select
+                    value={selectedAgenceId !== null ? String(selectedAgenceId) : undefined}
+                    onValueChange={(v) => setSelectedAgenceId(Number(v))}
+                  >
+                    <SelectTrigger className="h-10 min-w-56">
+                      <SelectValue placeholder="Choisir l'agence" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {agences.map((agence: any) => (
+                        <SelectItem key={agence.id} value={String(agence.id)}>
+                          {agence.nom_agence} ({agence.commune})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                {guichetCount > 0 && (
+                  <motion.div whileTap={{ scale: 0.97 }}>
+                    <Button onClick={handlePrint}>
+                      <Printer className="size-4" /> Imprimer le Kit complet
+                    </Button>
+                  </motion.div>
+                )}
+              </div>
             }
           />
 

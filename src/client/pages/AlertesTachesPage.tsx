@@ -444,7 +444,7 @@ const STATUT_COLOR: Record<string, string> = {
 };
 
 function TacheHistoriquePanel({ idTache }: { idTache: number }) {
-  const { data: historique, isLoading } = useQuery(getTacheHistorique, { id_tache: idTache });
+  const { data: historique, isLoading } = useQuery(getTacheHistorique, { id_tache: idTache }, { enabled: !!idTache });
 
   return (
     <motion.div
